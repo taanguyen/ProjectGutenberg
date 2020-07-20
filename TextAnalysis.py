@@ -1,11 +1,21 @@
 from collections import defaultdict
+import re
 
 class TextAnalysis():
     def __init__(self, filepath):
         self.filepath = filepath
+        regex = re.compile('["$%*+-/:;<=>@^_,\.!?()]')
+        self.words = []
         with open(filepath, 'r') as reader:
-            self.text = reader.read()
-            self.words = self.text.split()
+            text = reader.read()
+            words_unfiltered = text.split()
+            for word in words_unfiltered:
+                # remove punctuation from word 
+                word = regex.sub("", word)
+                # remove whitespaces
+                word = word.strip()
+                self.words.append(word)
+                
 
     def getTotalNumberOfWords(self):
         # return the number of words in the file.
@@ -27,7 +37,7 @@ class TextAnalysis():
         for word in self.words:
             word_count[word.lower()] += 1 
         word_count_list = list(word_count.items())
-        word_count_list.sort(key=lambda wc: (wc[1], wc[0]))
+        word_count_list.sort(key=lambda wc: (-wc[1], wc[0]))
         return word_count_list[:20]
 
     def get20MostInterestingFrequentWords():
