@@ -6,19 +6,29 @@ class TextAnalysis():
         with open('./1000mostcommonwords.txt') as reader:
             common_words_text = reader.read()
             self.common_words = common_words_text.split()
-
+        
+        # process text from book, line by line
         regex = re.compile('["$%*+-/:;<=>@^_,\.!?()]')
         self.words = []
+        # store each chapter using the index of the chapter line
+        self.chapters = []
         with open(filepath, 'r') as reader:
-            book_text = reader.read()
-            words_unfiltered = book_text.split()
-            for word in words_unfiltered:
-                # remove punctuation from word 
-                word = regex.sub("", word)
-                # remove whitespaces
-                word = word.strip()
-                self.words.append(word)
-
+            self.lines = reader.readlines()
+            for i in range(len(self.lines)):
+                line = self.lines[i]
+                # gutenberg books surround headings with 2 newlines on either side
+                if i - 1 >= 0 and i + 1 < len(self.lines) and self.lines[i+1] == "\n" and self.lines[i-1] == "\n":
+                    if i - 2 >= 0 and i + 2 < len(self.lines) and self.lines[i+2] == "\n" and self.lines[i-2] == "\n":
+                        self.chapters.append(i)
+                        #print(line)
+                words_unfiltered = line.split()
+                for word in words_unfiltered:
+                    # remove punctuation from word 
+                    word = regex.sub("", word)
+                    # remove whitespaces
+                    word = word.strip()
+                    self.words.append(word)
+            #print(self.chapters)
         self.word_count = defaultdict(int)
         for word in self.words:
             self.word_count[word if word == "I" else word.lower()] += 1
@@ -57,9 +67,23 @@ class TextAnalysis():
 
     def getFrequencyOfWord(self, word):
         #return an array of the number of the times the word was used in each chapter
-        pass
-        
-
+        chapter_idx = 0
+        chapter_frequency = defaultdict(int)
+        for index in range(len(self.lines)):
+            line = self.lines[index]
+            # parse each line of current chapter 
+            for word_text in line.split():
+                if word_text.lower() == word.lower():
+                    chapter_frequency[chapter_idx] += 1 
+            if chapter_idx < len(self.chapters) and index == self.chapters[chapter_idx]:
+                # we have reached the start of a new chapter
+                chapter_idx += 1 
+        print(len(self.chapters))
+        for chapter in self.chapters:
+            if self.lines[chapter].istitle():
+                print(self.lines[chapter])
+        #print([self.lines[i] for i in self.chapters])
+        return list(chapter_frequency.values())
 
     
 
